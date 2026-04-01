@@ -1,0 +1,13 @@
+{
+  "checkpoint_hash": "05bea463e155e5a8f98bda3122c6d32fda009e651fdb047c284ec0f9a9bf15f0",
+  "checkpoint_id": 1,
+  "merkle_root": "2e57a7b43880d1351057d619672feea5a9d8236da449ecb8118662f5110196e2",
+  "previous_checkpoint_file": null,
+  "previous_checkpoint_hash": null,
+  "review_count": 3,
+  "review_log_hash": "3e3618fdc907f8ee784d1547a074355c0a7b7b7a6dd7dbebc3c7f003c1c71178",
+  "signature": "25fRhA9cbFp/d2Ft15FejdOPGwrx9PNOFCIpP6lxUoHR7yJ9X32+uHfWv/1HvpRqunACi//aJLuVSg+R0JctAA==",
+  "timestamp": "2026-04-01T13:07:20Z",
+  "type": "review_log_checkpoint",
+  "version": 1
+}

@@ -1,0 +1,9 @@
+{
+  "checkpoint_count": 1,
+  "checkpoints": [
+    "checkpoint_0001.json"
+  ],
+  "latest_checkpoint_file": "checkpoint_0001.json",
+  "latest_checkpoint_id": 1,
+  "version": 1
+}
