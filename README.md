@@ -1,133 +1,156 @@
-Stage251: Multi-Anchor Verification (Threshold-based Trust Model)
+Stage252: External Anchor Integration (OpenTimestamps + Cosign Bundle)
 
 ## Overview
 
-Stage251 introduces a **multi-anchor verification model** that removes single-point dependency on GitHub.
+Stage252 extends the multi-anchor verification model by adding **external anchoring mechanisms** beyond GitHub.
 
-Instead of relying on a single source of truth, this stage implements:
+This stage introduces:
 
-- Multiple independent anchors
-- Threshold-based verification (2-of-3)
-- Distributed trust model
+- OpenTimestamps-based timestamp anchoring
+- Cosign bundle-based external signature verification
+- Continued compatibility with Stage251 multi-anchor verification
+
+The result is a stronger trust model that does not depend on a single platform or a single verification path.
 
 ---
 
 ## Why This Matters
 
-Previous stages relied on:
+Earlier stages improved verification through:
 
-- GitHub Release as the primary anchor
+- Signed evidence
+- Transparency checkpoints
+- Multi-anchor threshold verification
 
-This creates a **single point of failure**.
+However, trust was still partially concentrated around local or GitHub-linked evidence.
 
-Stage251 solves this by introducing:
+Stage252 improves this by adding:
 
-- Multiple anchors
-- Independent verification paths
-- Threshold-based acceptance
+- **OpenTimestamps** for external timestamp anchoring
+- **Cosign bundle verification** for external signing and transparency-linked verification
+
+This moves the project closer to a genuinely distributed trust model.
 
 ---
 
 ## Architecture
 
-### Anchors
+### Existing Anchors from Stage251
 
 | Anchor Type | Description |
 |------------|------------|
-| GitHub Release Anchor | External reference (Stage250) |
-| Local Witness | Ed25519 signature |
-| Checkpoint Witness | Append-only checkpoint chain |
+| GitHub Release Anchor | External release-linked anchor |
+| Local Witness | Ed25519-based local signature |
+| Checkpoint Witness | Append-only checkpoint history |
+
+### New External Anchors in Stage252
+
+| Anchor Type | Description |
+|------------|------------|
+| OpenTimestamps | External timestamp proof |
+| Cosign Bundle | External signature bundle with verifiable blob signature |
 
 ---
 
-### Policy
+## What Was Added
 
-```json
-{
-  "threshold": 2,
-  "accepted_anchor_types": [
-    "github_release_anchor",
-    "local_witness",
-    "checkpoint_witness"
-  ]
-}
-Verification Model
+### 1. OpenTimestamps Anchor
 
-Verification succeeds if:
+A timestamp proof is generated for the Stage250 release manifest:
 
-👉 At least 2 independent anchors agree
+```bash
+./tools/generate_ots_anchor.sh downloaded_stage250_release_anchor/release_manifest.json
 
-Example:
+Verification:
 
-GitHub + Local → OK
-Local + Checkpoint → OK
-GitHub only → NG
-How It Works
-Step 1: Build request
-python3 tools/build_multi_anchor_request.py \
-  --subject downloaded_stage250_release_anchor/release_manifest.json \
-  --output out/multi_anchor/request.json
-Step 2: Generate anchors
-./tools/run_stage251_multi_anchor.sh
+./tools/verify_ots_anchor.sh downloaded_stage250_release_anchor/release_manifest.json
 
-This will:
+Note:
 
-Create request
-Generate local witness signature
-Generate checkpoint anchor
-Import GitHub anchor
-Verify all anchors
+Initial verification may show Pending confirmation in Bitcoin blockchain
+This is normal until the timestamp becomes fully confirmed
+2. Cosign Bundle-Based External Verification
+
+A blob signature bundle is created for the same release manifest:
+
+cosign sign-blob \
+  --yes \
+  --key keys/stage252_cosign.key \
+  --bundle out/external_anchor/receipts/release_manifest.sigstore.json \
+  downloaded_stage250_release_anchor/release_manifest.json
+
+Verification:
+
+cosign verify-blob \
+  --key keys/stage252_cosign.pub \
+  --bundle out/external_anchor/receipts/release_manifest.sigstore.json \
+  downloaded_stage250_release_anchor/release_manifest.json
+
+Expected result:
+
+Verified OK
 Output
-out/multi_anchor/
-
-Includes:
-
-request.json
-local_witness_receipt.json
-checkpoint_witness_receipt.json
-github_release_anchor_normalized.json
-checkpoint history
+External anchor artifacts
+out/external_anchor/receipts/release_manifest.sigstore.json
+downloaded_stage250_release_anchor/release_manifest.json.ots
+Additional related files
+keys/stage252_cosign.pub
+tools/generate_ots_anchor.sh
+tools/verify_ots_anchor.sh
+tools/register_rekor.sh
+tools/verify_rekor.sh
 Security Properties
-1. No Single Point of Trust
+1. Reduced Platform Dependence
 
-Verification does not depend on GitHub alone.
+Verification no longer depends only on GitHub.
 
-2. Threshold-Based Trust
+2. External Timestamp Evidence
 
-Requires multiple independent confirmations.
+OpenTimestamps provides external time-based anchoring.
 
-3. Tamper Detection
+3. External Signature Verification
 
-Any mismatch in hash breaks verification.
+Cosign bundle verification provides a verifiable external signature path.
 
-4. Auditability
+4. Layered Trust Model
 
-All anchors are verifiable independently.
+Stage252 combines:
+
+local verification
+checkpoint verification
+GitHub anchoring
+external timestamping
+external bundle verification
+5. Tamper Evidence
+
+If the artifact changes, verification fails.
 
 Limitations
-Local witness and checkpoint anchors are controlled by the same operator
-Not yet a fully independent third-party trust system
-Next Step
-
-👉 Stage252: External Anchor Integration
-
-RFC3161 timestamp
-Sigstore / Rekor
-Third-party witness
+OpenTimestamps may initially remain in pending state before full blockchain confirmation
+The current external bundle verification is strong, but broader independent third-party witness diversity can still be improved further
+This stage improves trust distribution, but it is not yet a full production trust federation
 Conclusion
 
-Stage251 transforms verification from:
+Stage252 advances the project from:
 
-👉 Single-anchor trust
+multi-anchor internal/external hybrid verification
 
 to
 
-👉 Distributed, threshold-based trust
+externally anchored, layered verification
 
+This is an important step toward a more distributed and reviewer-friendly trust model.
+
+Next Step
+
+Possible next evolutions:
+
+broader third-party witness integration
+external reviewer signatures
+stronger policy binding between anchors and claims
+reviewer-facing verification package refinement
 License
 
 MIT License
 
 Copyright (c) 2025 Motohiro Suzuki
-
-Permission is hereby granted, free of charge, to any person obtaining a copy...
